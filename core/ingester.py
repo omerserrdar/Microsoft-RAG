@@ -734,3 +734,16 @@ async def ingest_directory(
     )
 
     return results
+
+
+# ────────────────────────────────────────────────────────
+# TÜRKÇE ALIAS FONKSİYONLAR
+# ────────────────────────────────────────────────────────
+foundry_vektor_istemcisi_olustur = create_foundry_embedding_client
+dosya_oku = read_file
+_pdf_oku = _read_pdf
+_metin_dosyasi_oku = _read_text_file
+metni_parcala = chunk_text
+dosya_yukle = ingest_file
+klasor_yukle = ingest_directory
+embedding_hesapla = compute_embeddings

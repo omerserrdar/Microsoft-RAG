@@ -421,3 +421,11 @@ async def generate_document_summary(
     except Exception as e:
         logger.error(f"❌ Özet oluşturulamadı ({file_name}): {e}")
         return f"'{file_name}' dosyasının özeti oluşturulamadı."
+
+
+# ────────────────────────────────────────────────────────
+# TÜRKÇE ALIAS FONKSİYONLAR
+# ────────────────────────────────────────────────────────
+foundry_sohbet_istemcisi_olustur = create_foundry_chat_client
+akisli_yanit_uret = generate_streaming_response
+belge_ozeti_uret = generate_document_summary

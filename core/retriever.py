@@ -286,3 +286,10 @@ async def hybrid_retrieve(
     
     logger.info(f"🔄 Hibrit arama tamamlandı. {len(top_results)} sonuç döndürülüyor.")
     return top_results
+
+
+# ────────────────────────────────────────────────────────
+# TÜRKÇE ALIAS FONKSİYONLAR
+# ────────────────────────────────────────────────────────
+ilgili_parcalari_getir = retrieve_relevant_chunks
+hibrit_getir = hybrid_retrieve

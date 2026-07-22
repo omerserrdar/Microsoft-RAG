@@ -124,7 +124,7 @@ def _cosine_similarity_udf(vec_json_1: str, vec_json_2: str) -> float:
 # BÖLÜM 2: DocumentDB SINIFI — ANA VERİTABANI YÖNETİCİSİ
 # ============================================================
 
-class DocumentDB:
+class DokumanVeritabani:
     """
     Projenin asenkron SQLite veritabanı yöneticisi.
 
@@ -137,19 +137,19 @@ class DocumentDB:
 
     Kullanım Örneği:
         # Context manager ile (önerilen):
-        async with DocumentDB() as db:
-            await db.insert_chunk("dosya.pdf", "metin", [0.1, ...])
+        async with DokumanVeritabani() as db:
+            await db.parca_ekle("dosya.pdf", "metin", [0.1, ...])
 
         # Manuel kullanım:
-        db = DocumentDB(db_path=Path("ozel_yol.db"))
-        await db.initialize()
+        db = DokumanVeritabani(db_path=Path("ozel_yol.db"))
+        await db.baslat()
         ...
-        await db.close()
+        await db.kapat()
     """
 
     def __init__(self, db_path: Optional[Path] = None):
         """
-        DocumentDB nesnesini oluşturur.
+        DokumanVeritabani nesnesini oluşturur.
 
         Parametreler:
             db_path (Path, opsiyonel): Veritabanı dosyasının yolu.
@@ -672,4 +672,29 @@ class DocumentDB:
         await self._db.execute("DELETE FROM chat_history WHERE session_id = ?", (session_id,))
         await self._db.execute("DELETE FROM feedback WHERE session_id = ?", (session_id,))
         await self._db.commit()
+
+    # ────────────────────────────────────────────────────────
+    # TÜRKÇE ALIAS METOTLAR (Geriye Dönük Uyumluluk)
+    # ────────────────────────────────────────────────────────
+    baslat = initialize
+    kapat = close
+    parca_ekle = insert_chunk
+    parcalari_toplu_ekle = insert_chunks_bulk
+    benzer_ara = search_similar
+    dokuman_sayisini_getir = get_document_count
+    dosya_adlarini_getir = get_file_names
+    dosyaya_gore_sil = delete_by_file
+    dosya_var_mi = file_exists
+    dokuman_istatistiklerini_getir = get_document_stats
+    anahtar_kelime_ara = keyword_search
+    geri_bildirim_kaydet = save_feedback
+    geri_bildirim_istatistiklerini_getir = get_feedback_stats
+    mesaj_kaydet = save_message
+    sohbet_oturumlarini_getir = get_chat_sessions
+    oturum_mesajlarini_getir = get_session_messages
+    oturumu_sil = delete_session
+
+
+# Geriye dönük sınıf alias'ı
+DocumentDB = DokumanVeritabani
 

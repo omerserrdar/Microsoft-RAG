@@ -27,24 +27,28 @@ from threading import Thread
 from pathlib import Path
 from datetime import datetime
 
-# ── Proje İçi İmportlar ──
-from core.database import DocumentDB
-from core.ingester import create_foundry_embedding_client, ingest_file, read_file
-from core.retriever import retrieve_relevant_chunks, hybrid_retrieve
+# ── Proje İçi İmportlar (Türkçe Modüller) ──
+from core.database import DokumanVeritabani
+from core.ingester import (
+    foundry_vektor_istemcisi_olustur,
+    dosya_yukle,
+    dosya_oku,
+)
+from core.retriever import ilgili_parcalari_getir, hibrit_getir
 from core.generator import (
-    create_foundry_chat_client,
-    generate_streaming_response,
-    generate_document_summary,
+    foundry_sohbet_istemcisi_olustur,
+    akisli_yanit_uret,
+    belge_ozeti_uret,
 )
 
 # ============================================================
-# BÖLÜM 1: ASYNC-SYNC KÖPRÜSÜ (AsyncRunner)
+# BÖLÜM 1: ASYNC-SYNC KÖPRÜSÜ (AsenkronCalistirici)
 # ============================================================
 # Streamlit senkron çalışır, core modüllerimiz asenkron.
 # Arka planda kalıcı bir event loop çalıştırarak köprü kuruyoruz.
 # ============================================================
 
-class AsyncRunner:
+class AsenkronCalistirici:
     """Asenkron coroutine ve generator'ları Streamlit'in senkron yapısına bağlar."""
 
     def __init__(self):
@@ -255,11 +259,11 @@ search_mode = st.sidebar.radio(
 @st.cache_resource
 def get_system_components(chat_model_name: str):
     """Tüm asenkron bileşenleri bir kez başlatıp önbelleğe alır."""
-    runner = AsyncRunner()
-    db = DocumentDB()
-    runner.run(db.initialize())
-    emb_client, emb_model = runner.run(create_foundry_embedding_client("qwen3-embedding-0.6b"))
-    chat_client, chat_model = runner.run(create_foundry_chat_client(chat_model_name))
+    runner = AsenkronCalistirici()
+    db = DokumanVeritabani()
+    runner.run(db.baslat())
+    emb_client, emb_model = runner.run(foundry_vektor_istemcisi_olustur("qwen3-embedding-0.6b"))
+    chat_client, chat_model = runner.run(foundry_sohbet_istemcisi_olustur(chat_model_name))
     return runner, db, emb_client, emb_model, chat_client, chat_model
 
 with st.spinner(f"🔌 Yerel yapay zekâ modeli yükleniyor ({selected_model})..."):
@@ -304,7 +308,7 @@ uploaded_file = st.sidebar.file_uploader(
 )
 
 if uploaded_file is not None:
-    exists = runner.run(db.file_exists(uploaded_file.name))
+    exists = runner.run(db.dosya_var_mi(uploaded_file.name))
     if exists:
         st.sidebar.warning(f"⚠️ `{uploaded_file.name}` zaten yüklü.")
     else:
@@ -321,7 +325,7 @@ if uploaded_file is not None:
                     os.replace(tmp_path, real_temp_path)
 
                 # Ingestion pipeline'ını çalıştır
-                result = runner.run(ingest_file(
+                result = runner.run(dosya_yukle(
                     file_path=real_temp_path, db=db,
                     embedding_client=emb_client, embedding_model=emb_model,
                     chunk_size=1000, chunk_overlap=100,
@@ -329,9 +333,8 @@ if uploaded_file is not None:
                 st.sidebar.success(f"✅ `{uploaded_file.name}` — {result['chunks']} parça")
 
                 # ── Belge Özetini Üret ve Session State'e Kaydet ──
-                # Özet artık ana panelde gösterilecek (sidebar'da değil)
-                raw_text, _ = runner.run(read_file(real_temp_path))
-                summary = runner.run(generate_document_summary(
+                raw_text, _ = runner.run(dosya_oku(real_temp_path))
+                summary = runner.run(belge_ozeti_uret(
                     raw_text, uploaded_file.name, chat_client, chat_model
                 ))
                 st.session_state.doc_summaries[uploaded_file.name] = {
@@ -357,9 +360,9 @@ if uploaded_file is not None:
 
 st.sidebar.markdown('<p class="sidebar-section-title">📊 Veritabanı Durumu</p>', unsafe_allow_html=True)
 
-doc_count = runner.run(db.get_document_count())
-stats = runner.run(db.get_document_stats())
-feedback_stats = runner.run(db.get_feedback_stats())
+doc_count = runner.run(db.dokuman_sayisini_getir())
+stats = runner.run(db.dokuman_istatistiklerini_getir())
+feedback_stats = runner.run(db.geri_bildirim_istatistiklerini_getir())
 
 # İstatistik kartları
 st.sidebar.markdown(f"""
@@ -389,7 +392,7 @@ if stats:
         col1, col2 = st.sidebar.columns([4, 1])
         col1.write(f"{idx}. `{item['file_name']}` ({item['chunk_count']})")
         if col2.button("🗑️", key=f"del_{item['file_name']}"):
-            runner.run(db.delete_by_file(item['file_name']))
+            runner.run(db.dosyaya_gore_sil(item['file_name']))
             st.rerun()
 else:
     st.sidebar.info("Henüz belge yüklenmemiş.")
@@ -400,7 +403,7 @@ else:
 
 st.sidebar.markdown('<p class="sidebar-section-title">🏷️ Arama Filtresi</p>', unsafe_allow_html=True)
 
-file_names = runner.run(db.get_file_names())
+file_names = runner.run(db.dosya_adlarini_getir())
 selected_files = st.sidebar.multiselect(
     "Sadece seçili belgelerde ara",
     options=file_names,
@@ -415,7 +418,7 @@ file_filter = selected_files if selected_files else None
 
 st.sidebar.markdown('<p class="sidebar-section-title">💾 Sohbet Geçmişi</p>', unsafe_allow_html=True)
 
-sessions = runner.run(db.get_chat_sessions())
+sessions = runner.run(db.sohbet_oturumlarini_getir())
 
 if st.sidebar.button("🆕 Yeni Sohbet Başlat", use_container_width=True):
     st.session_state.session_id = str(uuid.uuid4())[:8]
@@ -428,7 +431,7 @@ if sessions:
         label = f"💬 {sess['session_id']} ({sess['msg_count']} msj)"
         if col1.button(label, key=f"load_{sess['session_id']}", use_container_width=True):
             # Eski oturumun mesajlarını yükle
-            old_messages = runner.run(db.get_session_messages(sess['session_id']))
+            old_messages = runner.run(db.oturum_mesajlarini_getir(sess['session_id']))
             st.session_state.session_id = sess['session_id']
             st.session_state.messages = []
             for msg in old_messages:
@@ -441,7 +444,7 @@ if sessions:
                 st.session_state.messages.append(entry)
             st.rerun()
         if col2.button("🗑️", key=f"delsess_{sess['session_id']}"):
-            runner.run(db.delete_session(sess['session_id']))
+            runner.run(db.oturumu_sil(sess['session_id']))
             st.rerun()
 
 # ============================================================
@@ -485,8 +488,6 @@ st.sidebar.markdown(
 # ============================================================
 # BÖLÜM 11: ANA PANEL — BELGE BİLGİ KARTLARI
 # ============================================================
-# Yüklenen belgelerin AI özetleri ana panelde gösterilir
-# Sidebar'da alan dar olduğu için zengin bilgi kartları burada sunulur
 
 if st.session_state.doc_summaries:
     with st.expander(f"📚 Yüklenen Belgeler ({len(st.session_state.doc_summaries)} belge)", expanded=True):
@@ -518,11 +519,11 @@ for idx, msg in enumerate(st.session_state.messages):
             fb_col1, fb_col2, fb_col3 = st.columns([1, 1, 18])
             with fb_col1:
                 if st.button("👍", key=f"fb_up_{idx}"):
-                    runner.run(db.save_feedback(st.session_state.session_id, idx, 1))
+                    runner.run(db.geri_bildirim_kaydet(st.session_state.session_id, idx, 1))
                     st.toast("✅ Olumlu geri bildirim kaydedildi!", icon="👍")
             with fb_col2:
                 if st.button("👎", key=f"fb_down_{idx}"):
-                    runner.run(db.save_feedback(st.session_state.session_id, idx, -1))
+                    runner.run(db.geri_bildirim_kaydet(st.session_state.session_id, idx, -1))
                     st.toast("📝 Olumsuz geri bildirim kaydedildi.", icon="👎")
 
             # Vektör benzerlik analiz grafiği (varsa)
@@ -541,7 +542,7 @@ for idx, msg in enumerate(st.session_state.messages):
                         st.info(c["chunk_content"][:500])
 
 # ============================================================
-# BÖLÜM 12: SORU GİRİŞİ VE YANITLAMA
+# BÖLÜM 13: SORU GİRİŞİ VE YANITLAMA
 # ============================================================
 
 if prompt := st.chat_input("Yüklediğiniz belgeler hakkında soru sorun..."):
@@ -551,7 +552,7 @@ if prompt := st.chat_input("Yüklediğiniz belgeler hakkında soru sorun..."):
         st.markdown(prompt)
 
     # Kullanıcı mesajını veritabanına kaydet (sohbet geçmişi)
-    runner.run(db.save_message(st.session_state.session_id, "user", prompt))
+    runner.run(db.mesaj_kaydet(st.session_state.session_id, "user", prompt))
 
     # 2. Asistan yanıtı
     with st.chat_message("assistant"):
@@ -561,14 +562,14 @@ if prompt := st.chat_input("Yüklediğiniz belgeler hakkında soru sorun..."):
 
             if search_mode == "Hibrit (Semantik + Anahtar Kelime)":
                 # Hibrit arama (semantic + keyword)
-                chunks = runner.run(hybrid_retrieve(
+                chunks = runner.run(hibrit_getir(
                     question=prompt, db=db,
                     embedding_client=emb_client, embedding_model=emb_model,
                     file_filter=file_filter, top_k=3,
                 ))
             else:
                 # Sadece semantik arama
-                chunks = runner.run(retrieve_relevant_chunks(
+                chunks = runner.run(ilgili_parcalari_getir(
                     question=prompt, db=db,
                     embedding_client=emb_client, embedding_model=emb_model,
                     file_filter=file_filter, top_k=3,
@@ -577,14 +578,13 @@ if prompt := st.chat_input("Yüklediğiniz belgeler hakkında soru sorun..."):
             search_time = time.time() - start_time
 
         # ── Yanıt Üretimi (Streaming) ──
-        # Çok turlu hafıza: önceki mesajları chat_history olarak gönder
         chat_history_for_llm = [
             {"role": m["role"], "content": m["content"]}
             for m in st.session_state.messages[:-1]
         ]
 
         with st.spinner("🧠 Yapay zekâ yanıt üretiyor..."):
-            async_gen = generate_streaming_response(
+            async_gen = akisli_yanit_uret(
                 question=prompt,
                 context_chunks=chunks,
                 client=chat_client,
@@ -592,7 +592,7 @@ if prompt := st.chat_input("Yüklediğiniz belgeler hakkında soru sorun..."):
                 chat_history=chat_history_for_llm,
             )
 
-            # İlk token gelene kadar spinner dönsün (UX iyileştirmesi)
+            # İlk token gelene kadar spinner dönsün
             sync_gen = runner.stream(async_gen)
             first_token = ""
             try:
@@ -616,7 +616,7 @@ if prompt := st.chat_input("Yüklediğiniz belgeler hakkında soru sorun..."):
             "content": response,
             "chunks": chunks,
         })
-        runner.run(db.save_message(
+        runner.run(db.mesaj_kaydet(
             st.session_state.session_id, "assistant", response, chunks_json
         ))
 
