@@ -5,9 +5,8 @@ Bu paket, yerel RAG (Retrieval-Augmented Generation) sisteminin
 tüm çekirdek bileşenlerini barındırır.
 
 Bileşenler:
-    - database  : Asenkron SQLite veritabanı ve Cosine Similarity UDF
-    - ingester  : Döküman okuma, akıllı parçalama ve vektörleştirme
-    - retriever : Vektör benzerlik araması ve getirme (retrieval)
-    - generator : LLM streaming yanıt üretimi (generation)
+    - veritabani   : Asenkron SQLite veritabanı ve Cosine Similarity UDF
+    - yukleyici    : Döküman okuma, akıllı parçalama ve vektörleştirme
+    - arama_motoru : Vektör benzerlik ve hibrit arama motoru
+    - ureteci      : LLM streaming yanıt ve özet üretimi
 """
-

@@ -1,5 +1,5 @@
 """
-core/ingester.py — Project Antigravity: Döküman İşleme ve Vektörleştirme
+core/yukleyici.py — Project Antigravity: Döküman İşleme ve Vektörleştirme
 =========================================================================
 Bu modül, RAG (Retrieval-Augmented Generation) sisteminin veri yükleme
 işlem hattını (Data Ingestion Pipeline) yönetir.
@@ -25,12 +25,12 @@ sınırlarına duyarlı ve birbirine örtüşen (overlapping) parçalar üretir.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Kullanım:
-    from core.database import DocumentDB
-    from core.ingester import ingest_file, create_foundry_embedding_client
+    from core.veritabani import DokumanVeritabani
+    from core.yukleyici import dosya_yukle, foundry_vektor_istemcisi_olustur
 
-    async with DocumentDB() as db:
-        client, model = await create_foundry_embedding_client()
-        result = await ingest_file("rapor.pdf", db, client, model)
+    async with DokumanVeritabani() as db:
+        client, model = await foundry_vektor_istemcisi_olustur()
+        result = await dosya_yukle("rapor.pdf", db, client, model)
         print(result)  # {"file_name": "rapor.pdf", "chunks": 12, "status": "success"}
 """
 
@@ -45,7 +45,7 @@ from pathlib import Path  # Platformdan bağımsız dosya yolu yönetimi
 from typing import Optional  # Tip ipuçları
 
 # ── Proje İçi İmport ──
-from core.database import DocumentDB
+from core.veritabani import DokumanVeritabani
 
 
 # ============================================================
@@ -506,7 +506,7 @@ async def compute_embeddings(
 
 async def ingest_file(
     file_path: str | Path,
-    db: DocumentDB,
+    db: DokumanVeritabani,
     embedding_client,
     embedding_model: str = "qwen3-embedding-0.6b",
     chunk_size: int = 500,
@@ -663,7 +663,7 @@ async def ingest_file(
 
 async def ingest_directory(
     directory_path: str | Path,
-    db: DocumentDB,
+    db: DokumanVeritabani,
     embedding_client,
     embedding_model: str = "qwen3-embedding-0.6b",
     chunk_size: int = 500,

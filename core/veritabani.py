@@ -1,5 +1,5 @@
 """
-core/database.py — Project Antigravity: Veritabanı Altyapısı
+core/veritabani.py — Project Antigravity: Veritabanı Altyapısı
 =============================================================
 Bu modül, projenin tüm veri saklama ve vektör arama işlemlerini
 asenkron (async) bir SQLite veritabanı üzerinden yönetir.

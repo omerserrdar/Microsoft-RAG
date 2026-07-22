@@ -1,5 +1,5 @@
 """
-core/retriever.py — Project Antigravity: Arama ve Getirme Motoru
+core/arama_motoru.py — Project Antigravity: Arama ve Getirme Motoru
 ================================================================
 Bu modül, RAG (Retrieval-Augmented Generation) sisteminin
 "Retrieval" (Arama) katmanını yönetir.
@@ -22,13 +22,13 @@ Bu modül, RAG (Retrieval-Augmented Generation) sisteminin
             parçasını (chunk_content, file_name, score) döndürüyoruz.
 
 Kullanım:
-    from core.database import DocumentDB
-    from core.retriever import retrieve_relevant_chunks
-    from core.ingester import create_foundry_embedding_client
+    from core.veritabani import DokumanVeritabani
+    from core.arama_motoru import ilgili_parcalari_getir
+    from core.yukleyici import foundry_vektor_istemcisi_olustur
 
-    async with DocumentDB() as db:
-        client, model = await create_foundry_embedding_client()
-        results = await retrieve_relevant_chunks(
+    async with DokumanVeritabani() as db:
+        client, model = await foundry_vektor_istemcisi_olustur()
+        results = await ilgili_parcalari_getir(
             "Kızıl gezegen hangisidir?", db, client, model
         )
         for r in results:
@@ -42,8 +42,8 @@ Kullanım:
 import logging              # Loglama altyapısı
 
 # ── Proje İçi İmportlar ──
-from core.database import DocumentDB          # Veritabanı yöneticisi
-from core.ingester import compute_embeddings  # Vektör hesaplama fonksiyonu
+from core.veritabani import DokumanVeritabani    # Veritabanı yöneticisi
+from core.yukleyici import embedding_hesapla    # Vektör hesaplama fonksiyonu
 
 
 # ============================================================
@@ -59,7 +59,7 @@ logger = logging.getLogger(__name__)
 
 async def retrieve_relevant_chunks(
     question: str,
-    db: DocumentDB,
+    db: DokumanVeritabani,
     embedding_client,
     embedding_model: str = "qwen3-embedding-0.6b",
     file_filter: list[str] | None = None,
@@ -127,7 +127,7 @@ async def retrieve_relevant_chunks(
     # ilk elemanını ([0]) alıyoruz.
     # ══════════════════════════════════════════════════════════
 
-    query_vectors = await compute_embeddings(
+    query_vectors = await embedding_hesapla(
         texts=[question],
         client=embedding_client,
         model_name=embedding_model,
@@ -192,7 +192,7 @@ async def retrieve_relevant_chunks(
 
 async def hybrid_retrieve(
     question: str,
-    db: DocumentDB,
+    db: DokumanVeritabani,
     embedding_client,
     embedding_model: str = "qwen3-embedding-0.6b",
     file_filter: list[str] | None = None,

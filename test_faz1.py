@@ -1,7 +1,7 @@
 import asyncio
 from pathlib import Path
-from core.database import DokumanVeritabani
-from core.ingester import foundry_vektor_istemcisi_olustur, dosya_yukle, embedding_hesapla
+from core.veritabani import DokumanVeritabani
+from core.yukleyici import foundry_vektor_istemcisi_olustur, dosya_yukle, embedding_hesapla
 
 async def main():
     # 1. Test için örnek bir metin dosyası oluşturalım

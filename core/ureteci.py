@@ -1,5 +1,5 @@
 """
-core/generator.py — Project Antigravity: Yerel LLM ve Yanıt Üretim Motoru
+core/ureteci.py — Project Antigravity: Yerel LLM ve Yanıt Üretim Motoru
 ==========================================================================
 Bu modül, RAG (Retrieval-Augmented Generation) sisteminin
 "Generation" (Üretim) katmanını yönetir.
@@ -23,10 +23,10 @@ fırlatır, çağıran taraf `async for` ile okur.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Kullanım:
-    from core.generator import create_foundry_chat_client, generate_streaming_response
+    from core.ureteci import foundry_sohbet_istemcisi_olustur, akisli_yanit_uret
 
-    client, model = await create_foundry_chat_client()
-    async for token in generate_streaming_response(
+    client, model = await foundry_sohbet_istemcisi_olustur()
+    async for token in akisli_yanit_uret(
         "Mars nedir?", context_chunks, client, model
     ):
         print(token, end="", flush=True)
