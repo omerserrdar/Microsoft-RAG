@@ -1,0 +1,22 @@
+# Veritabanı ve Veri Klasörleri
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# Python Önbellek ve Ortamlar
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+
+# Geliştirici Scratch/Test Dosyaları
+scratch_test_rag.py
+
+# IDE ve İşletim Sistemi
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

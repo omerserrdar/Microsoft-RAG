@@ -1,0 +1,22 @@
+# ============================================================
+# Project Antigravity — Bağımlılıklar
+# ============================================================
+
+# --- Asenkron SQLite Veritabanı ---
+aiosqlite>=0.19.0
+
+# --- Sayısal Hesaplamalar (Cosine Similarity UDF) ---
+numpy>=1.24.0
+
+# --- PDF Döküman Okuma ---
+pypdf>=3.0.0
+
+# --- Yerel Yapay Zekâ Motoru (Microsoft Foundry Local) ---
+foundry-local-sdk
+
+# --- OpenAI Uyumlu Async İstemci (Foundry endpoint ile iletişim) ---
+openai>=1.0.0
+
+# --- Kullanıcı Arayüzü (UI) ---
+streamlit>=1.30.0
+
