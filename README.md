@@ -1,10 +1,8 @@
-# Project Antigravity
+# 🚀 Derkenar — Microsoft Foundry Local RAG Asistanı
 
 **Tamamen yerel çalışan, gizlilik odaklı RAG (Retrieval-Augmented Generation) sistemi.**
 
 Bulut API'lerine bağımlı olmadan, kendi belgeleriniz üzerinde soru-cevap yapabilen bir sistem. Tüm embedding ve dil modeli çıkarımı [Microsoft Foundry Local SDK](https://github.com/microsoft/Foundry-Local) üzerinden **cihazınızda** çalışır — verileriniz hiçbir zaman dışarı çıkmaz.
-
-> İsim önerisi olarak "Antigravity" kullanılıyor; proje henüz isim değiştirmeye açık.
 
 ---
 
@@ -92,8 +90,8 @@ Tüm katmanlar `async`/`await` üzerine kuruludur; ağır ve bloklayıcı işlem
 
 ```bash
 # 1. Depoyu klonlayın
-git clone <repo-url>
-cd antigravity
+git clone https://github.com/omerserrdar/Microsoft-RAG.git
+cd Microsoft-RAG
 
 # 2. Sanal ortam oluşturun
 python -m venv venv
@@ -103,7 +101,7 @@ source venv/bin/activate      # Windows: venv\Scripts\activate
 pip install aiosqlite numpy pypdf openai foundry-local-sdk
 ```
 
-> **Not:** `requirements.txt` dosyası projeye eklenmemiş; yukarıdaki paketler kod içindeki `import` ifadelerinden çıkarılmıştır. Projeyi dağıtıma hazırlarken bir `requirements.txt` veya `pyproject.toml` eklenmesi önerilir.
+> **Not:** `requirements.txt` üzerinden de yükleyebilirsiniz: `pip install -r requirements.txt`
 
 İlk çalıştırmada Foundry Local SDK, embedding ve sohbet modellerini otomatik olarak indirip yerel bir web servisi başlatır. Bu işlem internet bağlantısı gerektirir (yalnızca ilk indirmede); sonraki kullanımlar tamamen yerel/offline çalışır.
 
@@ -238,7 +236,7 @@ core/
 | Arama sonuç sayısı (`top_k`) | `5` | `arama_motoru.py` |
 | LLM `temperature` | `0.2` | `ureteci.py` |
 | LLM `max_tokens` | `512` | `ureteci.py` |
-| Veritabanı yolu | `<proje_kök>/data/antigravity.db` | `veritabani.py` |
+| Veritabanı yolu | `<proje_kök>/data/derkenar.db` | `veritabani.py` |
 
 > Bu değerlerin bir `.env` dosyası veya `config.py` üzerinden merkezi olarak yönetilmesi, farklı ortamlarda (geliştirme/prod) esneklik sağlar.
 
